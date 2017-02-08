@@ -1,5 +1,7 @@
 package maven.sortUtil;
 
+import java.util.Random;
+
 public class Sort {
 	
 	/**
@@ -13,6 +15,7 @@ public class Sort {
 	}
 	
 	/**
+	 * 冒泡排序
 	 * 1.比较相邻的元素.如果第一个比第二个大,就交换他们两个.
 	 * 2.对每一对相邻元素作同样的工作,从开始第一对到结尾的最后一对.这步做完之后,最后的元素会是最大的数.
 	 * 3.针对所有的元素重复以上的步骤,除了最后一个.
@@ -36,6 +39,7 @@ public class Sort {
 	}
 	
 	/**
+	 * 选择排序
 	 * 1.首先在未排序序列中找到最小(大)元素,存放到排序序列的起始位置
 	 * 2.再从剩余未排序元素中继续寻找最小(大)元素,然后放到已排序序列的末尾
 	 * 3.重复第二步,直到所有元素均排序完毕
@@ -61,6 +65,7 @@ public class Sort {
 	}
 	
 	/**
+	 * 插入排序
 	 * 1.将第一待排序序列第一个元素看做一个有序序列,把第二个元素到最后一个元素当成是未排序序列
 	 * 2.从头到尾以此扫描未排序序列,将扫描到的每个元素插入到有序序列的适当位置.(如果待插入的元素与有序序列中的元素相等,则将待插入元素插入到相等元素的后面)
 	 * @param arr
@@ -79,9 +84,211 @@ public class Sort {
 		}
 		return arr;
 	}
+	
+	/**
+	 * 归并排序的迭代法:
+	 * 1.将序列每相邻两个数字进行归并操作,形成floor(n/2)个序列,排序后每个序列包含两个元素
+	 * 2.将上述序列再次归并,形成floor(n/4)个序列,每个序列包含四个元素
+	 * 3.重复步骤2,直到所有元素排序完毕
+	 * @param arr
+	 * @return
+	 */
+	public static int[] mergeSort_iteration(int[] arr){
+		int len = arr.length;
+		int[] temp = new int[len];//用于存放归并结果的临时数组
+		int k = 1;//初始的子序列长度为1;
+		while(k < arr.length){
+			iteration(arr,temp,k,len);//将原先无序的数据两两归并入temp
+			k*=2;//子序列的长度加倍
+			iteration(temp,arr,k,len);//再将有序的temp两两归并入arr
+			k*=2;//子序列的长度加倍
+		}
+		return arr;
+	}
+	
+	/**
+	 * 二路归并的第二种方法(一开始不开辟等长的数组,而是在每次归并的时候开辟数组)
+	 * @param arr
+	 * @return
+	 */
+	public static int[] mergeSort_iteration2(int[] arr){
+		int k = 1;
+		int low;
+		int mid;
+		int high;
+		while(k <= arr.length - 1){
+			//从第一个元素开始扫描,low代表第一个分割的第一个元素
+			low = 0;
+			//当前的归并算法结束的条件
+			while(low + k < arr.length){
+				//mid代表第一个分割的最后一个元素
+				mid = low + k -1;
+				//high代表第二个分割的最后一个元素
+				high = mid + k;
+				//判断一下,如果第二个分割的个数不足k个
+				if(high > arr.length - 1){
+					//调整high未数组的最后一个下标即可
+					high = arr.length - 1;
+				}	
+				//调用归并函数进行归并排序
+				merge(arr,low,mid,high);
+				//下一次归并时第一个分割的第一个元素
+				low = high + 1;
+			}
+			//范围扩大一倍
+			k*=2;
+		}
+		return arr;
+	}
+	
+	/**
+	 * 将arr数组的数据归并入数组temp
+	 * @param arr  源数组
+	 * @param temp 存放归并结果的数组
+	 * @param s 子序列的长度
+	 * @param len 数组的总长度
+	 */
+	private static void iteration(int[] arr,int[] temp,int s,int len){
+		int i = 0;//每一次归并的初始位置
+		while(i < len-2*s - 1){
+			merge(arr,temp,i,i+s-1,i+2*s-1);
+			i+=2*s;
+		}
+		//处理最后的尾数
+		if(i < len-s + 1){
+			merge(arr,temp,i,i+s-1,len-1);//归并最后两个子序列
+		}else{//若最后只剩下一个子序列
+			for(int j = i ; j < len ; j++){
+				temp[j] = arr[j];
+			}
+		}
+	}
+	
+	/**
+	 * 归并算法:将数组a从low到high的子序列归并到数组b的相应位置
+	 * @param a
+	 * @param b
+	 * @param low
+	 * @param mid
+	 * @param high
+	 */
+	private static void merge(int[] a,int[] b,int low,int mid,int high){
+		int i = low;//左指针
+		int j = mid + 1;//右指针
+		int k = low;//记录数组b的开始位置
+		while(i <= mid && j<=high){
+			if(a[i] < a[j]){
+				b[k] = a[i];
+				i++;
+				k++;
+			}else{
+				b[k] = a[j];
+				j++;
+				k++;
+			}
+		}
+		while(i<=mid){
+			b[k] = a[i];
+			i++;
+			k++;
+		}
+		while(j<=high){
+			b[k] = a[j];
+			j++;
+			k++;
+		}
+	}
+	
+	/**
+	 * 归并排序的递归法:
+	 * 1.申请空间,使其大小为两个已经排序序列之和,该空间用来存放合并后的序列
+	 * 2.设定两个指针,最初位置分别为两个已经排序序列的起始位置
+	 * 3.比较两个指针所指向的元素,选择相对小的元素放入到合并空间,并移动指针到下一位置
+	 * 4.重复步骤三3直到某一指针达到序列尾
+	 * 5.将另一序列剩下的所有元素直接复制到合并序列尾
+	 * @param arr
+	 * @return
+	 */
+	public static int[] mergeSort_Recursion(int[] arr){
+		int low = 0;
+		int high = arr.length - 1;
+		recursion(arr,low,high);
+		return arr;
+	}
+
+	/**
+	 * 递归算法
+	 * @param arr
+	 * @param low
+	 * @param high
+	 */
+	public static void recursion(int[] arr,int low,int high){
+		int mid = (low + high) / 2;//从最低位和最高位折半
+		if(low < high){
+			recursion(arr,low,mid);//左边
+			recursion(arr,mid+1,high);//右边
+			merge(arr,low,mid,high);//归并
+		}
+	}
+	
+	/**
+	 * 归并算法:将两个有序序列合并成一个
+	 * @param arr
+	 * @param low
+	 * @param mid
+	 * @param high
+	 */
+	private static void merge(int[] arr,int low,int mid,int high){
+		int[] temp = new int[high-low+1];//临时数组
+		int i = low;//左指针
+		int j = mid + 1;//右指针
+		int k = 0;//临时数组的初始位置
+		//先把两边较小的元素插入临时数组
+		while(i<=mid && j<=high){
+			if(arr[i] < arr[j]){
+				temp[k] = arr[i];
+				i++;
+				k++;
+			}else{
+				temp[k] = arr[j];
+				j++;
+				k++;
+			}
+		}
+		//把左边剩余的元素插入临时数组
+		while(i<=mid){
+			temp[k] = arr[i];
+			i++;
+			k++;
+		}	
+		//把右边剩余的元素插入临时数组
+		while(j<=high){
+			temp[k] = arr[j];
+			j++;
+			k++;
+		}
+		//将临时数组的所有元素更新至待排序数组
+		for(int r = 0 ; r < temp.length ; r++){
+			arr[low + r] = temp[r];
+		}
+	}
+	
 	public static void main(String[] args){
-		int[] arr = {1,4,2,7,3,9,3,0,2,4,12,36,23,97,23,67,23,89,34,54,76,22,76};
-		Sort.printArray(Sort.insertionSort(arr));
+		int[] arr = new int[1000000];
+		Random random = new Random();
+		for(int i = 0 ; i < 1000000 ; i++){
+			arr[i] = random.nextInt(100000);
+		}
+		long begin = System.currentTimeMillis();
+		Sort.printArray(Sort.mergeSort_iteration(arr));
+		long end = System.currentTimeMillis();
+		System.out.println();
+		System.out.println("第一种二路归并排序用时:" + (end - begin));
+		begin = System.currentTimeMillis();
+		Sort.printArray(Sort.mergeSort_iteration2(arr));
+		end = System.currentTimeMillis();
+		System.out.println();
+		System.out.println("第二种二路归并排序用时:" + (end - begin));
 	}
 }
 
