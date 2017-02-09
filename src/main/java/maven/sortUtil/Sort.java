@@ -273,17 +273,89 @@ public class Sort {
 		}
 	}
 	
-	public static void main(String[] args){
-		int[] arr = new int[1000000];
-		Random random = new Random();
-		for(int i = 0 ; i < 1000000 ; i++){
-			arr[i] = random.nextInt(100000);
+	/**
+	 * 快速排序的递归方法
+	 * 1.从数列中挑出一个元素,成为基准(pivot)
+	 * 2.重新排序数列,所有元素比基准值小的摆放在基准前面,所有比基准值大的摆放在基准的后面(相同的数可以到任一边),在这个分区退出之后,该基准就处于数列的中间位置.这个成为分区操作
+	 * 3.递归地把小于基准值元素的子数列和大于基准值元素的子序列排序
+	 * @return
+	 */
+	public static int[] quickSort_Recursion(int[] arr){
+		partition(arr,0,arr.length-1);
+		return arr;
+	}
+	
+	/**
+	 * 分区函数:将一个无序数组按照一个基准分成左边小于基准,右边大于基准的两个部分
+	 * @param arr 待分区数组
+	 * @param left 分区的开始位置
+	 * @param right 分区的结束位置
+	 */
+	private static void partition(int[] arr,int left,int right){
+		int i = left;//左指针
+		int j = right;//右指针
+		int pivot = arr[left];//基准
+		int emptyIndex = i;//存放空位置的索引
+		//当左右指针还没相遇时,循环
+		while(i < j){
+			//当左右指针还没相遇,并且右指针指向的元素的值比基准大时,继续扫描
+			while(i < j && arr[j] >= pivot){
+				//右指针向左移动一个位置
+				j--;
+			}
+			//上面的循环跳出,说明右指针遇到了比基准小的元素,若此时左右指针还未相遇
+			if(i < j){
+				//把右指针指向的元素的值赋给空索引位置
+				arr[emptyIndex] = arr[j];
+				//将右指针的位置变为空索引位置
+				emptyIndex = j;
+			}
+			//当左右指针还没相遇,并且左指针指向的元素的值比基准小时,继续扫描
+			while(i < j && arr[i] <= pivot){
+				//左指针向右移动一个位置
+				i++;
+			}
+			//上面的循环跳出,说明左指针遇到了比基准大的元素,若此时左右指针还未相遇
+			if(i < j){
+				//把左指针指向的元素的值赋给空索引位置
+				arr[emptyIndex] = arr[i];
+				//将左指针的位置变为空索引位置
+				emptyIndex = i;
+			}
 		}
+		//跳出循环,完成一次分区操作.将基准元素放回空索引位置,
+		arr[emptyIndex] = pivot;
+		//如果左边的元素个数大于一
+		if((i - left) > 1){
+			//递归分区
+			partition(arr, left, i-1);
+		}
+		//如果右边的元素个数大于一
+		if((right - j) > 1){
+			//递归分区
+			partition(arr, j+1, right);
+		}
+	}
+	
+	public static void main(String[] args){
+		int[] arr = new int[1000];
+		Random random = new Random();
+		for(int i = 0 ; i < 1000 ; i++){
+			arr[i] = random.nextInt(1000);
+		}
+		
 		long begin = System.currentTimeMillis();
-		Sort.printArray(Sort.mergeSort_iteration(arr));
+		printArray(quickSort_Recursion(arr));
 		long end = System.currentTimeMillis();
 		System.out.println();
+		System.out.println("快速排序用时:" + (end - begin));
+		
+		begin = System.currentTimeMillis();
+		Sort.printArray(Sort.mergeSort_iteration(arr));
+		end = System.currentTimeMillis();
+		System.out.println();
 		System.out.println("第一种二路归并排序用时:" + (end - begin));
+		
 		begin = System.currentTimeMillis();
 		Sort.printArray(Sort.mergeSort_iteration2(arr));
 		end = System.currentTimeMillis();
